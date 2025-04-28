@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, LogIn } from 'lucide-react';
 
-const Login: React.FC = () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading } = useAuth();
@@ -22,27 +22,37 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-block p-3 bg-primary rounded-lg mb-2">
-            <FileText size={32} className="text-white" />
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px)] bg-[size:40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md px-4">
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-block p-4 bg-primary rounded-2xl mb-3 shadow-xl hover:shadow-primary/25 transition-shadow">
+            <FileText size={36} className="text-white animate-scale-in" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Mohil Enterprise</h1>
-          <p className="text-gray-600 mt-1">Enterprise Resource Planning System</p>
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+            <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              Mohil Enterprise
+            </span>
+          </h1>
+          <p className="text-gray-600 mt-2 text-lg">Enterprise Resource Planning System</p>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>
+        <Card className="shadow-2xl animate-scale-in">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
+            <CardDescription className="text-center">
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-4">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email/Username
                 </label>
                 <Input
@@ -51,12 +61,13 @@ const Login: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email or username"
+                  className="h-11"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <Input
@@ -65,6 +76,7 @@ const Login: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  className="h-11"
                   required
                 />
               </div>
@@ -73,18 +85,18 @@ const Login: React.FC = () => {
             <CardFooter>
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full h-11 text-base transition-all hover:scale-[1.01]" 
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <span className="flex items-center">
-                    <span className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-current rounded-full"></span>
-                    Signing In...
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="animate-spin h-5 w-5 border-t-2 border-b-2 border-current rounded-full" />
+                    <span>Signing In...</span>
                   </span>
                 ) : (
-                  <span className="flex items-center">
-                    <LogIn size={18} className="mr-2" />
-                    Sign In
+                  <span className="flex items-center justify-center space-x-2">
+                    <LogIn size={20} />
+                    <span>Sign In</span>
                   </span>
                 )}
               </Button>
@@ -92,10 +104,12 @@ const Login: React.FC = () => {
           </form>
         </Card>
         
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p className="mb-2">Demo Credentials:</p>
-          <p>Admin: admin@mohil.com / admin123</p>
-          <p>Supervisor: supervisor@mohil.com / supervisor123</p>
+        <div className="mt-8 text-center text-sm space-y-2 animate-fade-in [--animation-delay:200ms]">
+          <p className="text-gray-600 font-medium">Demo Credentials:</p>
+          <div className="space-y-1 text-gray-500">
+            <p>Admin: admin@mohil.com / admin123</p>
+            <p>Supervisor: supervisor@mohil.com / supervisor123</p>
+          </div>
         </div>
       </div>
     </div>
