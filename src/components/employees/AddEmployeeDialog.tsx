@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FileImage, Upload } from 'lucide-react';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const formSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -20,7 +24,21 @@ const formSchema = z.object({
   mobileNumber: z.string().min(10, "Mobile number must be at least 10 digits"),
   emergencyNumber: z.string().min(10, "Emergency number must be at least 10 digits"),
   idProof: z.string().min(5, "ID proof must be at least 5 characters"),
+  idProofImage: z.instanceof(File).optional().refine(
+    (file) => !file || file.size <= MAX_FILE_SIZE,
+    'Max file size is 10MB'
+  ).refine(
+    (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
+    'Only .jpg, .jpeg, and .png formats are supported'
+  ).nullable().optional(),
   bankAccountDetail: z.string().min(5, "Bank account details must be at least 5 characters"),
+  bankImage: z.instanceof(File).optional().refine(
+    (file) => !file || file.size <= MAX_FILE_SIZE,
+    'Max file size is 10MB'
+  ).refine(
+    (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
+    'Only .jpg, .jpeg, and .png formats are supported'
+  ).nullable().optional(),
   salary: z.coerce.number().min(1, "Salary must be at least 1"),
   isActive: z.boolean().default(true),
 });
@@ -37,6 +55,8 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
   onAddEmployee 
 }) => {
   const { toast } = useToast();
+  const [idProofPreview, setIdProofPreview] = useState<string | null>(null);
+  const [bankImagePreview, setBankImagePreview] = useState<string | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,7 +67,9 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
       mobileNumber: "",
       emergencyNumber: "",
       idProof: "",
+      idProofImage: null,
       bankAccountDetail: "",
+      bankImage: null,
       salary: 0,
       isActive: true,
     }
@@ -58,8 +80,8 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
     const newEmployee: Employee = {
       id: Math.random().toString(36).substring(2, 11), // Simple ID generation for mock data
       ...values,
-      bankImageUrl: '/placeholder.svg', // Placeholder image for now
-      bankImage: null, // Not included in final employee object
+      idProofImageUrl: idProofPreview || '/placeholder.svg', // Use preview URL or default placeholder
+      bankImageUrl: bankImagePreview || '/placeholder.svg', // Use preview URL or default placeholder
       createdBy: 'admin',
       createdAt: new Date(),
     };
@@ -71,6 +93,60 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
     });
     onOpenChange(false);
     form.reset();
+    setIdProofPreview(null);
+    setBankImagePreview(null);
+  };
+
+  const handleIdProofImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "Error",
+          description: "ID Proof image must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast({
+          title: "Error",
+          description: "Only .jpg, .jpeg, and .png formats are supported",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      form.setValue("idProofImage", file);
+      setIdProofPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleBankImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "Error",
+          description: "Bank document must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast({
+          title: "Error",
+          description: "Only .jpg, .jpeg, and .png formats are supported",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      form.setValue("bankImage", file);
+      setBankImagePreview(URL.createObjectURL(file));
+    }
   };
 
   return (
@@ -174,6 +250,42 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
                 )}
               />
               
+              <div>
+                <Label>ID Proof Image</Label>
+                <div className="mt-2">
+                  <Label 
+                    htmlFor="id-proof-upload" 
+                    className="cursor-pointer flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-md p-4 hover:bg-gray-50"
+                  >
+                    {idProofPreview ? (
+                      <div className="text-center">
+                        <img 
+                          src={idProofPreview} 
+                          alt="ID Proof" 
+                          className="h-20 mx-auto object-contain" 
+                        />
+                        <p className="text-xs text-center mt-2">Click to change</p>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <FileImage className="mx-auto h-8 w-8 text-gray-400" />
+                        <p className="text-xs mt-1">Upload ID proof image</p>
+                        <p className="text-xs text-gray-500">JPG, JPEG, PNG (max 10MB)</p>
+                      </div>
+                    )}
+                  </Label>
+                  <Input
+                    id="id-proof-upload"
+                    type="file"
+                    className="sr-only"
+                    accept=".jpg,.jpeg,.png"
+                    onChange={handleIdProofImageChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="bankAccountDetail"
@@ -187,6 +299,40 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
                   </FormItem>
                 )}
               />
+              
+              <div>
+                <Label>Bank Proof Image</Label>
+                <div className="mt-2">
+                  <Label 
+                    htmlFor="bank-proof-upload" 
+                    className="cursor-pointer flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-md p-4 hover:bg-gray-50"
+                  >
+                    {bankImagePreview ? (
+                      <div className="text-center">
+                        <img 
+                          src={bankImagePreview} 
+                          alt="Bank Document" 
+                          className="h-20 mx-auto object-contain" 
+                        />
+                        <p className="text-xs text-center mt-2">Click to change</p>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                        <p className="text-xs mt-1">Upload bank document</p>
+                        <p className="text-xs text-gray-500">JPG, JPEG, PNG (max 10MB)</p>
+                      </div>
+                    )}
+                  </Label>
+                  <Input
+                    id="bank-proof-upload"
+                    type="file"
+                    className="sr-only"
+                    accept=".jpg,.jpeg,.png"
+                    onChange={handleBankImageChange}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
