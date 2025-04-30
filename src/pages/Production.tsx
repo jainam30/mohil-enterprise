@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ProductionTable } from "@/components/production/ProductionTable";
 import { AddProductionDialog } from "@/components/production/AddProductionDialog";
 import { EditProductionDialog } from "@/components/production/EditProductionDialog";
+import { ProductionOperationsDialog } from "@/components/production/ProductionOperationsDialog";
 import { Production } from '@/types/production';
 import { useToast } from '@/hooks/use-toast';
 
@@ -82,6 +83,7 @@ const ProductionPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isOperationsDialogOpen, setIsOperationsDialogOpen] = useState(false);
   const [selectedProduction, setSelectedProduction] = useState<Production | null>(null);
   const { toast } = useToast();
 
@@ -109,6 +111,11 @@ const ProductionPage: React.FC = () => {
       setSelectedProduction(production);
       setIsEditDialogOpen(true);
     }
+  };
+  
+  const handleViewOperations = (production: Production) => {
+    setSelectedProduction(production);
+    setIsOperationsDialogOpen(true);
   };
 
   const filteredProductions = productions.filter(production => 
@@ -151,6 +158,7 @@ const ProductionPage: React.FC = () => {
           <ProductionTable 
             productions={filteredProductions} 
             onEditProduction={handleEditProduction}
+            onViewOperations={handleViewOperations}
           />
         </CardContent>
       </Card>
@@ -166,6 +174,13 @@ const ProductionPage: React.FC = () => {
         onOpenChange={setIsEditDialogOpen}
         onUpdateProduction={handleUpdateProduction}
         production={selectedProduction}
+      />
+      
+      <ProductionOperationsDialog
+        open={isOperationsDialogOpen}
+        onOpenChange={setIsOperationsDialogOpen}
+        production={selectedProduction}
+        onUpdateProduction={handleUpdateProduction}
       />
     </div>
   );

@@ -75,3 +75,27 @@ export interface ProductionFormData {
     ratePerPiece: number;
   }[];
 }
+
+export interface ProductionReport {
+  daily: ReportData;
+  weekly: ReportData;
+  monthly: ReportData;
+  yearly: ReportData;
+}
+
+export interface ReportData {
+  productionQuantity: number;
+  operationExpense: number;
+  rawMaterialCost: number;
+  totalExpense: number;
+  efficiency: number;
+}
+
+export interface EmployeePerformance {
+  employeeId: string;
+  employeeName: string;
+  totalPiecesCompleted: number;
+  totalOperations: number;
+  efficiency: number;
+  earnings: number;
+}

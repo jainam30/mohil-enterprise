@@ -15,11 +15,13 @@ import { Production } from '@/types/production';
 interface ProductionTableProps {
   productions: Production[];
   onEditProduction: (id: string) => void;
+  onViewOperations: (production: Production) => void;
 }
 
 export const ProductionTable: React.FC<ProductionTableProps> = ({ 
   productions,
-  onEditProduction
+  onEditProduction,
+  onViewOperations
 }) => {
   return (
     <Table>
@@ -54,7 +56,15 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
               <TableCell>{production.average}</TableCell>
               <TableCell>{production.totalQuantity} pcs</TableCell>
               <TableCell>{production.operations.length}</TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-right space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewOperations(production)}
+                >
+                  <Scissors className="h-4 w-4 mr-1" />
+                  Operations
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

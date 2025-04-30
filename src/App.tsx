@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import Employees from "./pages/Employees";
 import Products from "./pages/Products";
 import Production from "./pages/Production";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient();
 
@@ -37,10 +38,10 @@ const App = () => (
               <Route path="employees" element={<Employees />} />
               <Route path="products" element={<Products />} />
               <Route path="production" element={<Production />} />
+              <Route path="reports" element={<Reports />} />
               
               {/* Add other protected routes here */}
               {/* <Route path="workers" element={<Workers />} /> */}
-              {/* <Route path="reports" element={<Reports />} /> */}
               {/* <Route path="salary" element={<Salary />} /> */}
               {/* <Route path="users" element={<Users />} /> */}
               {/* <Route path="settings" element={<Settings />} /> */}
