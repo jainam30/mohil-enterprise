@@ -10,6 +10,7 @@ export interface Employee {
   bankAccountDetail: string;
   bankImageUrl: string;
   salary: number;
+  isActive: boolean;
   createdBy: string;
   createdAt: Date;
 }
@@ -24,4 +25,5 @@ export interface EmployeeFormData {
   bankAccountDetail: string;
   bankImage: File | null;
   salary: number;
+  isActive: boolean;
 }
