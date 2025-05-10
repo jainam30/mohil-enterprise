@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WorkerSalary } from "@/types/salary";
 import { format } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Mock data for workers
 const mockWorkers = [
@@ -45,6 +46,7 @@ export const WorkerSalaryTable: React.FC<WorkerSalaryTableProps> = ({ salaries, 
   const [month, setMonth] = useState<string>(new Date().getMonth().toString());
   const [year, setYear] = useState<string>(new Date().getFullYear().toString());
   const [aggregatedSalaries, setAggregatedSalaries] = useState<any[]>([]);
+  const isMobile = useIsMobile();
   
   // Calculate aggregated salaries by worker when month, year, or salaries change
   useEffect(() => {
@@ -126,11 +128,11 @@ export const WorkerSalaryTable: React.FC<WorkerSalaryTableProps> = ({ salaries, 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 opacity-50" />
+      <div className={`flex ${isMobile ? "flex-col" : "items-center"} gap-2`}>
+        <div className={`flex items-center gap-2 ${isMobile ? "w-full" : ""}`}>
+          <CalendarDays className="h-4 w-4 opacity-50 flex-shrink-0" />
           <Select value={month} onValueChange={setMonth}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className={`${isMobile ? "w-full" : "w-[150px]"}`}>
               <SelectValue placeholder="Select month" />
             </SelectTrigger>
             <SelectContent>
@@ -141,7 +143,7 @@ export const WorkerSalaryTable: React.FC<WorkerSalaryTableProps> = ({ salaries, 
           </Select>
         </div>
         <Select value={year} onValueChange={setYear}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className={`${isMobile ? "w-full" : "w-[100px]"}`}>
             <SelectValue placeholder="Select year" />
           </SelectTrigger>
           <SelectContent>
@@ -152,14 +154,14 @@ export const WorkerSalaryTable: React.FC<WorkerSalaryTableProps> = ({ salaries, 
         </Select>
       </div>
       
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Worker ID</TableHead>
-              <TableHead>Worker Name</TableHead>
-              <TableHead className="text-right">Total Pieces</TableHead>
-              <TableHead className="text-right">Total Amount (₹)</TableHead>
+              <TableHead className={isMobile ? "hidden" : ""}>Worker Name</TableHead>
+              <TableHead className={`${isMobile ? "" : "text-right"}`}>Pieces</TableHead>
+              <TableHead className="text-right">Amount (₹)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -167,16 +169,16 @@ export const WorkerSalaryTable: React.FC<WorkerSalaryTableProps> = ({ salaries, 
           <TableBody>
             {aggregatedSalaries.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={isMobile ? 5 : 6} className="h-24 text-center">
                   No salary records found for the selected period
                 </TableCell>
               </TableRow>
             ) : (
               aggregatedSalaries.map((workerSalary) => (
                 <TableRow key={workerSalary.workerId}>
-                  <TableCell>{workerSalary.workerId}</TableCell>
-                  <TableCell>{workerSalary.workerName}</TableCell>
-                  <TableCell className="text-right">{workerSalary.totalPieces}</TableCell>
+                  <TableCell className="font-medium">{workerSalary.workerId}</TableCell>
+                  {!isMobile && <TableCell>{workerSalary.workerName}</TableCell>}
+                  <TableCell className={`${isMobile ? "" : "text-right"}`}>{workerSalary.totalPieces}</TableCell>
                   <TableCell className="text-right font-medium">₹{workerSalary.totalAmount}</TableCell>
                   <TableCell>
                     <Badge variant={workerSalary.paid ? "success" : "outline"} className={workerSalary.paid ? "bg-green-100 text-green-800" : ""}>
