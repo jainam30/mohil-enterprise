@@ -27,6 +27,13 @@ import { Separator } from "@/components/ui/separator";
 import { Production, ProductionOperationDetail, ProductionFormData } from '@/types/production';
 import { Circle, CirclePlus, CircleMinus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Mock PO data for auto-filling average
 const poAverageData = {
@@ -40,6 +47,7 @@ const poAverageData = {
 const operationSchema = z.object({
   name: z.string().min(1, "Operation name is required"),
   ratePerPiece: z.coerce.number().min(0, "Rate must be a positive number"),
+  assignedWorkerId: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -57,15 +65,25 @@ interface AddProductionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddProduction: (production: Production) => void;
+  availableWorkers?: { id: string; name: string }[];
+}
+
+interface ExtendedProductionFormData extends ProductionFormData {
+  operations: Array<{
+    name: string;
+    ratePerPiece: number;
+    assignedWorkerId?: string;
+  }>;
 }
 
 export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
   open,
   onOpenChange,
   onAddProduction,
+  availableWorkers = []
 }) => {
   const { toast } = useToast();
-  const form = useForm<ProductionFormData>({
+  const form = useForm<ExtendedProductionFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -92,15 +110,23 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
     }
   }, [poNumber, form, toast]);
 
-  const onSubmit = (values: ProductionFormData) => {
+  const onSubmit = (values: ExtendedProductionFormData) => {
     // Create operations array for the new production
-    const operationDetails: ProductionOperationDetail[] = values.operations.map(op => ({
-      id: uuidv4(),
-      name: op.name,
-      ratePerPiece: op.ratePerPiece,
-      isCompleted: false,
-      productionId: "", // Will be set after production is created
-    }));
+    const operationDetails: ProductionOperationDetail[] = values.operations.map(op => {
+      const selectedWorker = op.assignedWorkerId 
+        ? availableWorkers.find(w => w.id === op.assignedWorkerId) 
+        : null;
+        
+      return {
+        id: uuidv4(),
+        name: op.name,
+        ratePerPiece: op.ratePerPiece,
+        isCompleted: false,
+        productionId: "", // Will be set after production is created
+        assignedWorkerId: op.assignedWorkerId,
+        assignedWorkerName: selectedWorker?.name,
+      };
+    });
 
     // Create a new production with the form values
     const newProduction: Production = {
@@ -151,7 +177,7 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -181,7 +207,7 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="poNumber"
@@ -216,7 +242,7 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="totalFabric"
@@ -282,7 +308,7 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
               </div>
 
               {form.getValues().operations?.map((_, index) => (
-                <div key={index} className="grid grid-cols-[1fr_auto_auto] gap-4 mb-4 items-start">
+                <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-4 mb-4 items-start">
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
@@ -314,6 +340,36 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name={`operations.${index}.assignedWorkerId`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assigned Worker</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select worker" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">None</SelectItem>
+                              {availableWorkers.map(worker => (
+                                <SelectItem key={worker.id} value={worker.id}>
+                                  {worker.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

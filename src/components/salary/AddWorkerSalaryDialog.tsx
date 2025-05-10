@@ -31,11 +31,13 @@ interface AddWorkerSalaryDialogProps {
   productions?: Production[];
 }
 
-// Mock data for workers
+// Mock data for workers - This would ideally come from a database
 const mockWorkers = [
   { id: 'WOR001', name: 'Ramesh Kumar' },
   { id: 'WOR002', name: 'Suresh Singh' },
   { id: 'WOR003', name: 'Manoj Verma' },
+  { id: 'WOR004', name: 'Ravi Patel' },
+  { id: 'WOR005', name: 'Amit Sharma' },
 ];
 
 export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
@@ -120,6 +122,11 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
         amountPerPiece: operation.ratePerPiece,
         totalAmount: prev.piecesDone * operation.ratePerPiece
       }));
+      
+      // If operation has an assigned worker, select that worker
+      if (operation.assignedWorkerId) {
+        handleWorkerChange(operation.assignedWorkerId);
+      }
     }
   };
   
@@ -160,9 +167,12 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
     const newSalary: WorkerSalary = {
       id: uuidv4(),
       workerId: formData.workerId,
+      workerName: selectedWorker?.name,
       productId: formData.productId,
+      productName: selectedProduction?.name,
       date: new Date(),
       operationId: formData.operationId,
+      operationName: selectedOperation?.name,
       piecesDone: formData.piecesDone,
       amountPerPiece: formData.amountPerPiece,
       totalAmount: formData.totalAmount,
@@ -190,7 +200,7 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Worker Salary</DialogTitle>
           <DialogDescription>
@@ -199,7 +209,7 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="worker">Worker</Label>
               <Select
@@ -239,7 +249,7 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="operation">Operation</Label>
               <Select
@@ -254,6 +264,7 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
                   {availableOperations.map((operation) => (
                     <SelectItem key={operation.id} value={operation.id}>
                       {operation.name} (₹{operation.ratePerPiece}/piece)
+                      {operation.assignedWorkerName && ` - ${operation.assignedWorkerName}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -273,7 +284,7 @@ export const AddWorkerSalaryDialog: React.FC<AddWorkerSalaryDialogProps> = ({
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="amountPerPiece">Rate per Piece (₹)</Label>
               <Input

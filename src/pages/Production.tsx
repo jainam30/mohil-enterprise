@@ -8,8 +8,10 @@ import { ProductionTable } from "@/components/production/ProductionTable";
 import { AddProductionDialog } from "@/components/production/AddProductionDialog";
 import { EditProductionDialog } from "@/components/production/EditProductionDialog";
 import { ProductionOperationsDialog } from "@/components/production/ProductionOperationsDialog";
-import { Production } from '@/types/production';
+import { Production, WorkerAssignment } from '@/types/production';
 import { useToast } from '@/hooks/use-toast';
+import { WorkerSalary } from '@/types/salary';
+import { v4 as uuidv4 } from 'uuid';
 
 // Mock data for initial development
 const mockProductions: Production[] = [
@@ -78,6 +80,15 @@ const mockProductions: Production[] = [
   }
 ];
 
+// Mock data for workers - This would ideally come from a database
+const mockWorkers = [
+  { id: 'WOR001', name: 'Ramesh Kumar' },
+  { id: 'WOR002', name: 'Suresh Singh' },
+  { id: 'WOR003', name: 'Manoj Verma' },
+  { id: 'WOR004', name: 'Ravi Patel' },
+  { id: 'WOR005', name: 'Amit Sharma' },
+];
+
 const ProductionPage: React.FC = () => {
   const [productions, setProductions] = useState<Production[]>(mockProductions);
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,6 +96,9 @@ const ProductionPage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isOperationsDialogOpen, setIsOperationsDialogOpen] = useState(false);
   const [selectedProduction, setSelectedProduction] = useState<Production | null>(null);
+  const [workerAssignments, setWorkerAssignments] = useState<WorkerAssignment[]>([]);
+  const [workerSalaries, setWorkerSalaries] = useState<WorkerSalary[]>([]);
+  
   const { toast } = useToast();
 
   const handleAddProduction = (newProduction: Production) => {
@@ -96,13 +110,79 @@ const ProductionPage: React.FC = () => {
   };
 
   const handleUpdateProduction = (updatedProduction: Production) => {
+    // Check if operations have assigned workers
+    const hasAssignedWorkers = updatedProduction.operations.some(op => op.assignedWorkerId);
+    
     setProductions(productions.map(production => 
       production.id === updatedProduction.id ? updatedProduction : production
     ));
+    
     toast({
       title: "Production updated",
       description: `${updatedProduction.name} has been updated successfully.`,
     });
+    
+    // If operations have assigned workers, update worker assignments
+    if (hasAssignedWorkers) {
+      const newAssignments = updatedProduction.operations
+        .filter(op => op.assignedWorkerId)
+        .map(op => {
+          const worker = mockWorkers.find(w => w.id === op.assignedWorkerId);
+          return {
+            workerId: op.assignedWorkerId!,
+            workerName: worker?.name || 'Unknown Worker',
+            operationId: op.id,
+            operationName: op.name,
+            productionId: updatedProduction.id,
+            productionName: updatedProduction.name,
+            piecesDone: 0, // Default value, will be updated when work is recorded
+            date: new Date()
+          };
+        });
+      
+      setWorkerAssignments(prev => [
+        ...prev.filter(wa => wa.productionId !== updatedProduction.id), // Remove old assignments for this production
+        ...newAssignments
+      ]);
+      
+      // Create salary records for newly assigned workers
+      const newSalaryRecords = updatedProduction.operations
+        .filter(op => op.assignedWorkerId)
+        .map(op => {
+          const worker = mockWorkers.find(w => w.id === op.assignedWorkerId);
+          return {
+            id: uuidv4(),
+            workerId: op.assignedWorkerId!,
+            workerName: worker?.name || 'Unknown Worker',
+            productId: updatedProduction.id,
+            productName: updatedProduction.name,
+            date: new Date(),
+            operationId: op.id,
+            operationName: op.name,
+            piecesDone: 0, // Default value, will be updated when work is completed
+            amountPerPiece: op.ratePerPiece,
+            totalAmount: 0, // Will be calculated when pieces are done
+            paid: false
+          };
+        });
+      
+      // Only add new salary records if they don't already exist
+      const existingSalaryIds = workerSalaries.map(ws => 
+        `${ws.workerId}-${ws.productId}-${ws.operationId}`
+      );
+      
+      const filteredNewSalaries = newSalaryRecords.filter(nsr => 
+        !existingSalaryIds.includes(`${nsr.workerId}-${nsr.productId}-${nsr.operationId}`)
+      );
+      
+      if (filteredNewSalaries.length > 0) {
+        setWorkerSalaries(prev => [...prev, ...filteredNewSalaries]);
+        toast({
+          title: "Salary records created",
+          description: `${filteredNewSalaries.length} new worker salary records have been created.`,
+        });
+      }
+    }
   };
 
   const handleEditProduction = (id: string) => {
@@ -127,8 +207,8 @@ const ProductionPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Production Management</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Production Management</h1>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Production
@@ -174,6 +254,7 @@ const ProductionPage: React.FC = () => {
         onOpenChange={setIsEditDialogOpen}
         onUpdateProduction={handleUpdateProduction}
         production={selectedProduction}
+        availableWorkers={mockWorkers}
       />
       
       <ProductionOperationsDialog
@@ -181,6 +262,7 @@ const ProductionPage: React.FC = () => {
         onOpenChange={setIsOperationsDialogOpen}
         production={selectedProduction}
         onUpdateProduction={handleUpdateProduction}
+        availableWorkers={mockWorkers}
       />
     </div>
   );

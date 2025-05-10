@@ -1,4 +1,3 @@
-
 export interface ProductionCutting {
   id: string;
   productId: string;
@@ -12,6 +11,7 @@ export interface ProductionOperation {
   productionId: string;
   operationId: string;
   workerId: string;
+  workerName?: string; // Added worker name for display purposes
   piecesDone: number;
   date: Date;
   createdBy: string;
@@ -60,6 +60,8 @@ export interface ProductionOperationDetail {
   ratePerPiece: number;
   isCompleted: boolean;
   productionId: string;
+  assignedWorkerId?: string; // Added field to track assigned worker
+  assignedWorkerName?: string; // Added field to display worker name
 }
 
 export interface ProductionFormData {
@@ -98,4 +100,16 @@ export interface EmployeePerformance {
   totalOperations: number;
   efficiency: number;
   earnings: number;
+}
+
+// New interface for worker assignment
+export interface WorkerAssignment {
+  workerId: string;
+  workerName: string;
+  operationId: string;
+  operationName: string;
+  productionId: string;
+  productionName: string;
+  piecesDone: number;
+  date: Date;
 }

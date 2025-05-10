@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -25,11 +26,19 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Production, ProductionFormData } from '@/types/production';
 import { CirclePlus, CircleMinus } from "lucide-react";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Form validation schema
 const operationSchema = z.object({
   name: z.string().min(1, "Operation name is required"),
   ratePerPiece: z.coerce.number().min(0, "Rate must be a positive number"),
+  assignedWorkerId: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -48,6 +57,15 @@ interface EditProductionDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdateProduction: (production: Production) => void;
   production: Production | null;
+  availableWorkers?: { id: string; name: string }[];
+}
+
+interface ExtendedProductionFormData extends ProductionFormData {
+  operations: Array<{
+    name: string;
+    ratePerPiece: number;
+    assignedWorkerId?: string;
+  }>;
 }
 
 export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
@@ -55,8 +73,9 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
   onOpenChange,
   onUpdateProduction,
   production,
+  availableWorkers = []
 }) => {
-  const form = useForm<ProductionFormData>({
+  const form = useForm<ExtendedProductionFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -84,23 +103,30 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
         operations: production.operations.map(op => ({
           name: op.name,
           ratePerPiece: op.ratePerPiece,
+          assignedWorkerId: op.assignedWorkerId || '',
         })),
       });
     }
   }, [form, production]);
 
-  const onSubmit = (values: ProductionFormData) => {
+  const onSubmit = (values: ExtendedProductionFormData) => {
     if (!production) return;
 
     // Keep existing IDs for operations that already exist
     const updatedOperations = values.operations.map((op, index) => {
       const existingOp = production.operations[index];
+      const selectedWorker = op.assignedWorkerId 
+        ? availableWorkers.find(w => w.id === op.assignedWorkerId) 
+        : null;
+        
       return {
         id: existingOp?.id || uuidv4(),
         name: op.name,
         ratePerPiece: op.ratePerPiece,
         isCompleted: existingOp?.isCompleted || false,
         productionId: production.id,
+        assignedWorkerId: op.assignedWorkerId,
+        assignedWorkerName: selectedWorker?.name,
       };
     });
 
@@ -153,7 +179,7 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -183,7 +209,7 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="poNumber"
@@ -213,7 +239,7 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="totalFabric"
@@ -274,7 +300,7 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
               </div>
 
               {form.getValues().operations?.map((_, index) => (
-                <div key={index} className="grid grid-cols-[1fr_auto_auto] gap-4 mb-4 items-start">
+                <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-4 mb-4 items-start">
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
@@ -306,6 +332,36 @@ export const EditProductionDialog: React.FC<EditProductionDialogProps> = ({
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name={`operations.${index}.assignedWorkerId`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assigned Worker</FormLabel>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select worker" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">None</SelectItem>
+                              {availableWorkers.map(worker => (
+                                <SelectItem key={worker.id} value={worker.id}>
+                                  {worker.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

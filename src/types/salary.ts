@@ -2,9 +2,12 @@
 export interface WorkerSalary {
   id: string;
   workerId: string;
+  workerName?: string; // Added worker name for display
   productId: string;
+  productName?: string; // Added product name for display
   date: Date;
   operationId: string;
+  operationName?: string; // Added operation name for display
   piecesDone: number;
   amountPerPiece: number;
   totalAmount: number;
