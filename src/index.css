@@ -3,12 +3,54 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Remove default Vite styling to allow our custom styles to work better */
+/* ==== THEME COLOR VARIABLES ==== */
+:root {
+  /* Brand palette for Tailwind custom colors */
+  --primary: 168 94% 38%;
+  --primary-foreground: 168 100% 97%;
+  --secondary: 189 97% 56%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 165 73% 45%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 1 82% 61%;
+  --destructive-foreground: 0 0% 100%;
+
+  --muted: 216 15% 80%;
+  --muted-foreground: 215 15% 25%;
+
+  --background: 210 40% 98%;
+  --foreground: 210 20% 20%;
+
+  --border: 215 13% 91%;
+  --input: 210 40% 96%;
+  --ring: 165 73% 45%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 20% 15%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 210 20% 18%;
+
+  /* Sidebar custom */
+  --sidebar-background: 168 94% 39%;
+  --sidebar-foreground: 168 100% 97%;
+  --sidebar-primary: 189 97% 56%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 165 73% 45%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 168 54% 82%;
+  --sidebar-ring: 165 73% 45%;
+
+  --radius: 0.5rem;
+}
+
+/* ==== Custom Styles ==== */
 #root {
   width: 100%;
 }
 
-/* Custom styles for our app can be added here */
+/* Logo styling w/ hover animation */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -22,7 +64,7 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-/* Custom animation for moving horizontally (right to left!) */
+/* ==== Custom Animations ==== */
 @keyframes move-horizontal {
   0% {
     transform: translateX(24px);
@@ -33,4 +75,43 @@
 }
 .animate-move-horizontal {
   animation: move-horizontal 1.2s linear infinite alternate;
+}
+
+/* Fade animation example for card pop-in, etc. */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Utility: pulse animation for attention-grabbing */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .6;
+  }
+}
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;
+}
+
+/* Responsive background and section coloring fallback demonstration */
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Helper for theme transitions */
+.theme-transition {
+  transition: background 0.4s, color 0.2s;
 }
