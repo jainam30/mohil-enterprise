@@ -1,6 +1,4 @@
 
-/* Restore the original styling and add horizontal movement animation for the scissors logo */
-
 /* Remove default Vite styling to allow our custom styles to work better */
 #root {
   width: 100%;
