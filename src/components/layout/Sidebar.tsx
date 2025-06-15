@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -25,6 +26,16 @@ import {
 const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const { setOpen, setOpenMobile, isMobile, open, openMobile } = useSidebar();
+
+  // Helper to close sidebar on menu item click
+  const handleMenuClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      setOpen(false);
+    }
+  };
 
   return (
     <SidebarComponent>
@@ -52,7 +63,8 @@ const Sidebar: React.FC = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink 
-                    to="/dashboard" 
+                    to="/dashboard"
+                    onClick={handleMenuClick}
                     className={({ isActive }) => 
                       `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                     }
@@ -76,7 +88,8 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink 
-                      to="/employees" 
+                      to="/employees"
+                      onClick={handleMenuClick}
                       className={({ isActive }) => 
                         `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                       }
@@ -91,7 +104,8 @@ const Sidebar: React.FC = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink 
-                    to="/workers" 
+                    to="/workers"
+                    onClick={handleMenuClick}
                     className={({ isActive }) => 
                       `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                     }
@@ -105,7 +119,8 @@ const Sidebar: React.FC = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink 
-                    to="/products" 
+                    to="/products"
+                    onClick={handleMenuClick}
                     className={({ isActive }) => 
                       `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                     }
@@ -119,7 +134,8 @@ const Sidebar: React.FC = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink 
-                    to="/production" 
+                    to="/production"
+                    onClick={handleMenuClick}
                     className={({ isActive }) => 
                       `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                     }
@@ -133,7 +149,8 @@ const Sidebar: React.FC = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink 
-                    to="/salary" 
+                    to="/salary"
+                    onClick={handleMenuClick}
                     className={({ isActive }) => 
                       `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                     }
@@ -156,7 +173,8 @@ const Sidebar: React.FC = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink 
-                    to="/reports" 
+                    to="/reports"
+                    onClick={handleMenuClick}
                     className={({ isActive }) => 
                       `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                     }
@@ -180,7 +198,8 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink 
-                      to="/settings" 
+                      to="/settings"
+                      onClick={handleMenuClick}
                       className={({ isActive }) => 
                         `transition-all duration-200 hover:translate-x-1 ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}`
                       }

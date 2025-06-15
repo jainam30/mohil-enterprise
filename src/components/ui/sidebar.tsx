@@ -173,7 +173,25 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, open, setOpen } = useSidebar();
+    const sidebarContentRef = React.useRef<HTMLDivElement>(null);
+
+    // Click-outside to close sidebar (desktop only, when sidebar open)
+    React.useEffect(() => {
+      if (isMobile || !open) return;
+
+      const handleClick = (event: MouseEvent) => {
+        if (
+          sidebarContentRef.current &&
+          !sidebarContentRef.current.contains(event.target as Node)
+        ) {
+          setOpen(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClick);
+      return () => document.removeEventListener('mousedown', handleClick);
+    }, [isMobile, open, setOpen]);
 
     if (collapsible === "none") {
       return (
@@ -245,6 +263,7 @@ const Sidebar = React.forwardRef<
           {...props}
         >
           <div
+            ref={sidebarContentRef}
             data-sidebar="sidebar"
             className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
           >
