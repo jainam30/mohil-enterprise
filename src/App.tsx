@@ -50,63 +50,14 @@ const App = () => (
               <Route path="salary" element={<Salary />} />
             </Route>
 
-            {/* Allow direct top-level access (for sidebar) */}
-            <Route
-              path="/employees"
-              element={
-                <AppLayout>
-                  <Employees />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/workers"
-              element={
-                <AppLayout>
-                  <Workers />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/products"
-              element={
-                <AppLayout>
-                  <Products />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/production"
-              element={
-                <AppLayout>
-                  <Production />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/reports"
-              element={
-                <AppLayout>
-                  <Reports />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <AppLayout>
-                  <Settings />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/salary"
-              element={
-                <AppLayout>
-                  <Salary />
-                </AppLayout>
-              }
-            />
+            {/* Redirect from top-level to dashboard nested route */}
+            <Route path="/employees" element={<Navigate to="/dashboard/employees" replace />} />
+            <Route path="/workers" element={<Navigate to="/dashboard/workers" replace />} />
+            <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
+            <Route path="/production" element={<Navigate to="/dashboard/production" replace />} />
+            <Route path="/reports" element={<Navigate to="/dashboard/reports" replace />} />
+            <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+            <Route path="/salary" element={<Navigate to="/dashboard/salary" replace />} />
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
@@ -118,4 +69,3 @@ const App = () => (
 );
 
 export default App;
-
