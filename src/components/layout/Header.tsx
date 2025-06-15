@@ -1,12 +1,17 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 const Header: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <header className="bg-white border-b h-16 flex items-center justify-end px-4">
+    <header className="bg-white border-b h-16 flex items-center justify-between px-4">
+      <div className="flex items-center">
+        <SidebarTrigger />
+      </div>
       <div className="flex items-center gap-2">
         {user && (
           <Link
@@ -30,4 +35,5 @@ const Header: React.FC = () => {
     </header>
   );
 };
+
 export default Header;

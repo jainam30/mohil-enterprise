@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,7 +40,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with AppLayout */}
             <Route path="/dashboard" element={<AppLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="employees" element={<Employees />} />
@@ -49,11 +50,9 @@ const App = () => (
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
               <Route path="salary" element={<Salary />} />
+              <Route path="admin-profile" element={<AdminProfile />} />
+              <Route path="supervisor-profile" element={<SupervisorProfile />} />
             </Route>
-
-            {/* Profile pages under /dashboard for consistency */}
-            <Route path="/dashboard/admin-profile" element={<AdminProfile />} />
-            <Route path="/dashboard/supervisor-profile" element={<SupervisorProfile />} />
 
             {/* Redirect from top-level to dashboard nested route */}
             <Route path="/employees" element={<Navigate to="/dashboard/employees" replace />} />
