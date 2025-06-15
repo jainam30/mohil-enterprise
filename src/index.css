@@ -50,15 +50,56 @@
   width: 100%;
 }
 
-/* Logo styling w/ hover animation */
+body {
+  /* Vibrant animated gradient background */
+  background: linear-gradient(120deg, #e0ffe5 0%, #e0f5ff 40%, #fffde4 100%);
+  background-size: 180% 180%;
+  animation: vibrant-gradient-move 10s ease-in-out infinite alternate;
+  color: hsl(var(--foreground));
+}
+
+/* Animated background for cards and sections */
+.card,
+.dashboard-card {
+  background: linear-gradient(115deg, #e0f5ff 5%, #ecffe7 60%, #fedcfb 100%);
+}
+
+.sidebar {
+  background: linear-gradient(160deg, #14b8a6 60%, #77e0d8 100%);
+  color: #fff;
+}
+
+.sidebar h1,
+.sidebar .logo {
+  background: linear-gradient(90deg, #14b8a6 60%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes vibrant-gradient-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Logo styling with gradient border and animation */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
+  border-radius: 1.5em;
+  /* Multicolor border shimmer for logo */
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+    linear-gradient(90deg, #14b8a6, #f472b6, #2dd4bf, #a78bfa, #22d3ee) border-box;
+  box-shadow: 0 2px 32px rgba(20,184,166,0.09);
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #14b8a6aa);
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
@@ -67,21 +108,21 @@
 /* ==== Custom Animations ==== */
 @keyframes move-horizontal {
   0% {
-    transform: translateX(24px);
+    transform: translateX(16px);
   }
   100% {
-    transform: translateX(-24px);
+    transform: translateX(-16px);
   }
 }
 .animate-move-horizontal {
   animation: move-horizontal 1.2s linear infinite alternate;
 }
 
-/* Fade animation example for card pop-in, etc. */
+/* Fade-in animation for card pop-in etc. */
 @keyframes fade-in {
   0% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   100% {
     opacity: 1;
@@ -92,26 +133,35 @@
   animation: fade-in 0.3s ease-out;
 }
 
-/* Utility: pulse animation for attention-grabbing */
+/* Pulse Animation for icons/badges needing attention */
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .6;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: .6; }
 }
 .pulse {
   animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;
 }
 
-/* Responsive background and section coloring fallback demonstration */
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+/* Section and container backgrounds: lively gradient borders */
+.section-gradient {
+  background: linear-gradient(90deg, #f0fff2 0%, #e0f7fa 100%);
+  border-radius: var(--radius);
+  border: 1.5px solid #22d3ee;
 }
 
-/* Helper for theme transitions */
+/* Buttons animated gradient */
+.button-gradient {
+  background: linear-gradient(90deg, #14b8a6, #34d399, #f472b6, #2dd4bf, #a78bfa, #22d3ee);
+  background-size: 350% 350%;
+  animation: vibrant-gradient-move 8s ease-in-out infinite alternate;
+  color: white;
+}
+
 .theme-transition {
   transition: background 0.4s, color 0.2s;
+}
+
+/* Optional: Soft shadow for floating/animated look */
+.soft-shadow {
+  box-shadow: 0 4px 32px 0 rgba(20,184,166,0.14);
 }
