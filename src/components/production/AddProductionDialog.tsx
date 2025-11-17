@@ -111,40 +111,49 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
   }, [poNumber, form, toast]);
 
   const onSubmit = (values: ExtendedProductionFormData) => {
-    // Create operations array for the new production
-    const operationDetails: ProductionOperationDetail[] = values.operations.map(op => {
-      const selectedWorker = op.assignedWorkerId 
-        ? availableWorkers.find(w => w.id === op.assignedWorkerId) 
-        : null;
-        
-      return {
+    try {
+      // Create operations array for the new production
+      const operationDetails: ProductionOperationDetail[] = values.operations.map(op => {
+        const selectedWorker = op.assignedWorkerId 
+          ? availableWorkers.find(w => w.id === op.assignedWorkerId) 
+          : null;
+          
+        return {
+          id: uuidv4(),
+          name: op.name,
+          ratePerPiece: op.ratePerPiece,
+          isCompleted: false,
+          productionId: "", // Will be set after production is created
+          assignedWorkerId: op.assignedWorkerId,
+          assignedWorkerName: selectedWorker?.name,
+        };
+      });
+
+      // Create a new production with the form values
+      const newProduction: Production = {
         id: uuidv4(),
-        name: op.name,
-        ratePerPiece: op.ratePerPiece,
-        isCompleted: false,
-        productionId: "", // Will be set after production is created
-        assignedWorkerId: op.assignedWorkerId,
-        assignedWorkerName: selectedWorker?.name,
+        ...values,
+        operations: operationDetails,
+        createdBy: 'admin',
+        createdAt: new Date(),
       };
-    });
 
-    // Create a new production with the form values
-    const newProduction: Production = {
-      id: uuidv4(),
-      ...values,
-      operations: operationDetails,
-      createdBy: 'admin',
-      createdAt: new Date(),
-    };
+      // Set the productionId for each operation
+      newProduction.operations.forEach(op => {
+        op.productionId = newProduction.id;
+      });
 
-    // Set the productionId for each operation
-    newProduction.operations.forEach(op => {
-      op.productionId = newProduction.id;
-    });
-
-    onAddProduction(newProduction);
-    onOpenChange(false);
-    form.reset();
+      onAddProduction(newProduction);
+      onOpenChange(false);
+      form.reset();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add production. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error adding production:", error);
+    }
   };
 
   const addOperation = () => {
