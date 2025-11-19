@@ -15,7 +15,7 @@ export interface Employee {
   salary: number;
   isActive: boolean;
   createdBy: string;
-  createdAt: Date;
+  created_at: Date;
 }
 
 export interface EmployeeFormData {

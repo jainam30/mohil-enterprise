@@ -27,6 +27,7 @@ import AdminProfile from "./pages/AdminProfile";
 import SupervisorProfile from "./pages/SupervisorProfile";
 
 const queryClient = new QueryClient();
+// quick test in App.tsx or console
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

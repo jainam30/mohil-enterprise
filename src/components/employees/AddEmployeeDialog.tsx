@@ -12,6 +12,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FileImage, Upload } from 'lucide-react';
+import { supabase } from "@/Config/supabaseClient";
+
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
@@ -78,36 +80,66 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
     }
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const newEmployee: Employee = {
-      id: Math.random().toString(36).substring(2, 11),
-      name: values.name,
-      employeeId: values.employeeId,
-      address: values.address,
-      mobileNumber: values.mobileNumber,
-      emergencyNumber: values.emergencyNumber,
-      idProof: values.idProof,
-      idProofImageUrl: idProofPreview || '/placeholder.svg',
-      bankAccountDetail: values.bankAccountDetail,
-      bankImageUrl: bankImagePreview || '/placeholder.svg',
-      salary: values.salary,
-      isActive: values.isActive,
-      createdBy: 'admin',
-      createdAt: new Date(),
-      permanentAddress: values.permanentAddress || "",
-      currentAddress: values.currentAddress || ""
-    };
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  try {
+    let idProofUrl = null;
+    let bankUrl = null;
 
-    onAddEmployee(newEmployee);
+    // Upload ID proof image
+    if (values.idProofImage instanceof File) {
+      idProofUrl = await uploadToStorage(values.idProofImage, "id-proof");
+    }
+
+    // Upload bank proof image
+    if (values.bankImage instanceof File) {
+      bankUrl = await uploadToStorage(values.bankImage, "bank-proof");
+    }
+
+    // Insert employee into database
+    const { data, error } = await supabase
+      .from("employees")
+      .insert([
+        {
+          name: values.name,
+          employee_code: values.employeeId,
+          address: values.address,
+          permanent_address: values.permanentAddress,
+          current_address: values.currentAddress,
+          mobile_number: values.mobileNumber,
+          emergency_number: values.emergencyNumber,
+          id_proof: values.idProof,
+          id_proof_image_url: idProofUrl,
+          bank_account_detail: values.bankAccountDetail,
+          bank_image_url: bankUrl,
+          salary_amount: values.salary,
+          is_active: values.isActive,
+          created_at: new Date(),
+        },
+      ])
+      .select("*")
+      .single();
+
+    if (error) throw error;
+
     toast({
-      title: "Employee added",
-      description: `${values.name} has been successfully added`,
+      title: "Employee Added",
+      description: `${data.name} saved successfully`,
     });
+
+    onAddEmployee(data); // pass real DB employee
     onOpenChange(false);
     form.reset();
     setIdProofPreview(null);
     setBankImagePreview(null);
-  };
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  }
+};
+
 
   const handleIdProofImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -160,6 +192,32 @@ export const AddEmployeeDialog: React.FC<AddEmployeeDialogProps> = ({
       setBankImagePreview(URL.createObjectURL(file));
     }
   };
+  // Upload file to Supabase Storage
+const uploadToStorage = async (file: File, folder: string) => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${folder}/${crypto.randomUUID()}.${fileExt}`;
+
+  const { data, error } = await supabase.storage
+    .from("factory-images")
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("UPLOAD ERROR", error);
+    throw error;
+  }
+
+  // Get public URL
+  const { data: publicUrlData } = supabase.storage
+    .from("factory-images")
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
+};
+
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

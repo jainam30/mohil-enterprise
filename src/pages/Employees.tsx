@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Search } from "lucide-react";
@@ -6,71 +5,61 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddEmployeeDialog } from "@/components/employees/AddEmployeeDialog";
 import { EmployeeTable } from "@/components/employees/EmployeeTable";
-import { Employee } from '@/types/employee';
-
-// Mock data for initial development
-const mockEmployees: Employee[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    employeeId: 'EMP001',
-    address: '123 Main St, City',
-    permanentAddress: '123 Main St, City',
-    currentAddress: '123 Main St, City',
-    mobileNumber: '9876543210',
-    emergencyNumber: '1234567890',
-    idProof: 'AADHAR1234567890',
-    idProofImageUrl: '/placeholder.svg',
-    bankAccountDetail: 'BANK1234567890',
-    bankImageUrl: '/placeholder.svg',
-    salary: 25000,
-    isActive: true,
-    createdBy: 'admin',
-    createdAt: new Date('2023-01-15')
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    employeeId: 'EMP002',
-    address: '456 Oak St, Town',
-    permanentAddress: '456 Oak St, Town',
-    currentAddress: '789 Pine St, Village',
-    mobileNumber: '8765432109',
-    emergencyNumber: '2345678901',
-    idProof: 'AADHAR0987654321',
-    idProofImageUrl: '/placeholder.svg',
-    bankAccountDetail: 'BANK0987654321',
-    bankImageUrl: '/placeholder.svg',
-    salary: 30000,
-    isActive: false,
-    createdBy: 'admin',
-    createdAt: new Date('2023-03-10')
-  }
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getEmployees, toggleEmployeeStatus, updateEmployee } from "@/Services/employeeService";
 
 const Employees: React.FC = () => {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const handleAddEmployee = (newEmployee: Employee) => {
-    setEmployees([...employees, newEmployee]);
+  const queryClient = useQueryClient();
+
+  // Fetch REAL employees from Supabase
+  const { data: employees = [], isLoading, error } = useQuery({
+    queryKey: ["employees"],
+    queryFn: getEmployees,
+  });
+
+  // Convert DB → frontend format
+  const mappedEmployees = employees.map((e: any) => ({
+    id: e.id,
+    employeeId: e.employee_code,
+    name: e.name,
+    address: e.address,
+    permanentAddress: e.permanent_address,
+    currentAddress: e.current_address,
+    mobileNumber: e.mobile_number,
+    emergencyNumber: e.emergency_number,
+    idProof: e.id_proof,
+    idProofImageUrl: e.id_proof_image_url,
+    bankAccountDetail: e.bank_account_detail,
+    bankImageUrl: e.bank_image_url,
+    salary: e.salary_amount,
+    isActive: e.is_active,
+    createdBy: e.created_by,
+    created_at: e.created_at,
+  }));
+
+  // Add employee → refresh list
+  const handleAddEmployee = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["employees"] });
   };
 
-  const handleToggleStatus = (id: string) => {
-    setEmployees(employees.map(employee => 
-      employee.id === id ? { ...employee, isActive: !employee.isActive } : employee
-    ));
+  // Toggle active/inactive
+  const handleToggleStatus = async (id: string) => {
+    await toggleEmployeeStatus(id);
+    queryClient.invalidateQueries({ queryKey: ["employees"] });
   };
 
-  const handleUpdateEmployee = (id: string, updatedEmployee: Partial<Employee>) => {
-    setEmployees(employees.map(employee => 
-      employee.id === id ? { ...employee, ...updatedEmployee } : employee
-    ));
+  // Edit employee
+  const handleUpdateEmployee = async (id: string, updatedEmployee: any) => {
+    await updateEmployee(id, updatedEmployee);
+    queryClient.invalidateQueries({ queryKey: ["employees"] });
   };
 
-  const filteredEmployees = employees.filter(employee => 
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  // Search
+  const filteredEmployees = mappedEmployees.filter((employee: any) =>
+    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -88,9 +77,10 @@ const Employees: React.FC = () => {
         <CardHeader>
           <CardTitle>Employee Management</CardTitle>
           <CardDescription>
-            View, add, and manage all your company employees here.
+            View, add, and manage all employees in the company.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <div className="mb-6">
             <div className="relative">
@@ -104,11 +94,16 @@ const Employees: React.FC = () => {
             </div>
           </div>
 
-          <EmployeeTable 
-            employees={filteredEmployees} 
-            onToggleStatus={handleToggleStatus}
-            onUpdateEmployee={handleUpdateEmployee}
-          />
+          {isLoading && <p>Loading employees...</p>}
+          {error && <p>Error loading employees.</p>}
+
+          {!isLoading && !error && (
+            <EmployeeTable 
+              employees={filteredEmployees}
+              onToggleStatus={handleToggleStatus}
+              onUpdateEmployee={handleUpdateEmployee}
+            />
+          )}
         </CardContent>
       </Card>
 

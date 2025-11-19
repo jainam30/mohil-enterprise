@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -69,53 +68,74 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
-            {employees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell className="font-medium">{employee.employeeId}</TableCell>
-                <TableCell>{employee.name}</TableCell>
-                <TableCell>{employee.mobileNumber}</TableCell>
-                <TableCell>₹{employee.salary.toLocaleString()}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      checked={employee.isActive}
-                      onCheckedChange={() => handleToggle(employee)}
-                    />
-                    <Badge variant={employee.isActive ? "default" : "outline"}>
-                      {employee.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                </TableCell>
-                <TableCell>{formatDistanceToNow(new Date(employee.createdAt), { addSuffix: true })}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="icon" title="View Details" onClick={() => handleViewClick(employee)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      title="Edit Employee"
-                      onClick={() => handleEditClick(employee)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={employee.isActive ? "outline" : "default"} 
-                      size="icon"
-                      onClick={() => handleToggle(employee)}
-                      title={employee.isActive ? "Deactivate Employee" : "Activate Employee"}
-                    >
-                      {employee.isActive ? 
-                        <UserX className="h-4 w-4" /> : 
-                        <UserCheck className="h-4 w-4" />
-                      }
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {employees.map((employee) => {
+
+              // FIX DATE SAFELY
+              const createdAt = employee.created_at
+                ? new Date(employee.created_at)
+                : null;
+
+              const createdAtLabel = createdAt && !isNaN(createdAt as any)
+                ? formatDistanceToNow(createdAt, { addSuffix: true })
+                : "—";
+
+              return (
+                <TableRow key={employee.id}>
+                  <TableCell className="font-medium">{employee.employeeId}</TableCell>
+                  <TableCell>{employee.name}</TableCell>
+                  <TableCell>{employee.mobileNumber}</TableCell>
+
+                  {/* FIX salary number errors */}
+                  <TableCell>₹{Number(employee.salary || 0).toLocaleString()}</TableCell>
+
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={employee.isActive}
+                        onCheckedChange={() => handleToggle(employee)}
+                      />
+                      <Badge variant={employee.isActive ? "default" : "outline"}>
+                        {employee.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                  </TableCell>
+
+                  {/* FIX Invalid Time Value */}
+                  <TableCell>{createdAtLabel}</TableCell>
+
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="icon" title="View Details" onClick={() => handleViewClick(employee)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        title="Edit Employee"
+                        onClick={() => handleEditClick(employee)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+
+                      <Button 
+                        variant={employee.isActive ? "outline" : "default"} 
+                        size="icon"
+                        onClick={() => handleToggle(employee)}
+                        title={employee.isActive ? "Deactivate Employee" : "Activate Employee"}
+                      >
+                        {employee.isActive ? 
+                          <UserX className="h-4 w-4" /> : 
+                          <UserCheck className="h-4 w-4" />
+                        }
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
