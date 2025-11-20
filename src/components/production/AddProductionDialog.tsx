@@ -353,36 +353,7 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
                       )}
                     />
                   </div>
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name={`operations.${index}.assignedWorkerId`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Assigned Worker</FormLabel>
-                          <Select
-                            value={field.value ?? "none"}
-                            onValueChange={(value) => field.onChange(value === "none" ? undefined : value)}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select worker" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">None</SelectItem>
-                              {availableWorkers.map(worker => (
-                                <SelectItem key={worker.id} value={worker.id}>
-                                  {worker.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  
                   <div className="pt-8">
                     <Button
                       type="button"

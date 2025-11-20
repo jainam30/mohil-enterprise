@@ -11,6 +11,8 @@ import { Production, WorkerAssignment } from '@/types/production';
 import { useToast } from '@/hooks/use-toast';
 import { WorkerSalary } from '@/types/salary';
 import { v4 as uuidv4 } from 'uuid';
+import { WorkerAssignmentTable } from "@/components/production/WorkerAssignmentTable";
+
 
 // Mock data for initial development
 const mockProductions: Production[] = [
@@ -81,11 +83,101 @@ const mockProductions: Production[] = [
 
 // Mock data for workers - This would ideally come from a database
 const mockWorkers = [
-  { id: 'WOR001', name: 'Ramesh Kumar' },
-  { id: 'WOR002', name: 'Suresh Singh' },
-  { id: 'WOR003', name: 'Manoj Verma' },
-  { id: 'WOR004', name: 'Ravi Patel' },
-  { id: 'WOR005', name: 'Amit Sharma' },
+  {
+    id: 'WOR001',
+    name: 'Ramesh Kumar',
+    worker_code: 'WK001',
+    workerId: 'WOR001',
+    address: '123 Main St',
+    permanentAddress: '456 Permanent St',
+    phone: '9876543210',
+    emergencyContact: '9123456789',
+    dob: new Date('1990-01-01'),
+    doj: new Date('2020-01-01'),
+    gender: 'Male',
+    maritalStatus: 'Single',
+    bankAccount: '123456789',
+    ifsc: 'IFSC001',
+    pan: 'ABCDE1234F',
+    aadhar: '123412341234',
+    status: 'Active'
+  },
+  {
+    id: 'WOR002',
+    name: 'Suresh Singh',
+    worker_code: 'WK002',
+    workerId: 'WOR002',
+    address: '234 Main St',
+    permanentAddress: '567 Permanent St',
+    phone: '9876543211',
+    emergencyContact: '9123456790',
+    dob: new Date('1988-02-02'),
+    doj: new Date('2021-02-02'),
+    gender: 'Male',
+    maritalStatus: 'Married',
+    bankAccount: '223456789',
+    ifsc: 'IFSC002',
+    pan: 'BCDEA2345G',
+    aadhar: '234523452345',
+    status: 'Active'
+  },
+  {
+    id: 'WOR003',
+    name: 'Manoj Verma',
+    worker_code: 'WK003',
+    workerId: 'WOR003',
+    address: '345 Main St',
+    permanentAddress: '678 Permanent St',
+    phone: '9876543212',
+    emergencyContact: '9123456791',
+    dob: new Date('1992-03-03'),
+    doj: new Date('2022-03-03'),
+    gender: 'Male',
+    maritalStatus: 'Single',
+    bankAccount: '323456789',
+    ifsc: 'IFSC003',
+    pan: 'CDEAB3456H',
+    aadhar: '345634563456',
+    status: 'Active'
+  },
+  {
+    id: 'WOR004',
+    name: 'Ravi Patel',
+    worker_code: 'WK004',
+    workerId: 'WOR004',
+    address: '456 Main St',
+    permanentAddress: '789 Permanent St',
+    phone: '9876543213',
+    emergencyContact: '9123456792',
+    dob: new Date('1991-04-04'),
+    doj: new Date('2023-04-04'),
+    gender: 'Male',
+    maritalStatus: 'Married',
+    bankAccount: '423456789',
+    ifsc: 'IFSC004',
+    pan: 'DEABC4567J',
+    aadhar: '456745674567',
+    status: 'Active'
+  },
+  {
+    id: 'WOR005',
+    name: 'Amit Sharma',
+    worker_code: 'WK005',
+    workerId: 'WOR005',
+    address: '567 Main St',
+    permanentAddress: '890 Permanent St',
+    phone: '9876543214',
+    emergencyContact: '9123456793',
+    dob: new Date('1989-05-05'),
+    doj: new Date('2024-05-05'),
+    gender: 'Male',
+    maritalStatus: 'Single',
+    bankAccount: '523456789',
+    ifsc: 'IFSC005',
+    pan: 'EABCD5678K',
+    aadhar: '567856785678',
+    status: 'Active'
+  }
 ];
 
 const ProductionPage: React.FC = () => {
@@ -192,6 +284,32 @@ const ProductionPage: React.FC = () => {
     }
   };
   
+  const handleAssignWorker = (
+  productionId: string,
+  operationId: string,
+  workerId: string,
+  quantity: number
+) => {
+  setProductions((prev) =>
+    prev.map((prod) =>
+      prod.id === productionId
+        ? {
+            ...prod,
+            operations: prod.operations.map((op) =>
+              op.id === operationId
+                ? {
+                    ...op,
+                    assignedWorkerId: workerId,
+                    piecesDone: quantity,
+                  }
+                : op
+            ),
+          }
+        : prod
+    )
+  );
+};
+
   const handleViewOperations = (production: Production) => {
     setSelectedProduction(production);
     setIsOperationsDialogOpen(true);
@@ -260,9 +378,13 @@ const ProductionPage: React.FC = () => {
       <ProductionOperationsDialog
         open={isOperationsDialogOpen}
         onOpenChange={setIsOperationsDialogOpen}
-        production={selectedProduction} availableWorkers={[]} onAssignWorker={function (productionId: string, operationId: string, workerId: string): void {
-          throw new Error('Function not implemented.');
-        } }      />
+        production={selectedProduction}
+        availableWorkers={mockWorkers as any}
+        onAssignWorker={handleAssignWorker} />
+
+      {/* Worker Assignment Records Table */}
+      <WorkerAssignmentTable assignments={workerAssignments} />
+
     </div>
   );
 };
