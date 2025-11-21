@@ -1,115 +1,83 @@
+// ----------------------
+// Production Cutting (Optional Stage)
+// ----------------------
 export interface ProductionCutting {
   id: string;
-  productId: string;
+  productId: string;          // maps to production.product_id
   totalPieces: number;
   cutDate: Date;
   createdBy: string;
 }
 
+// ----------------------
+// Production Operation (Stored in DB)
+// ----------------------
 export interface ProductionOperation {
   id: string;
-  productionId: string;
-  operationId: string;
-  workerId: string;
-  workerName?: string; // Added worker name for display purposes
+  productionId: string;       // production.id
+  operationId: string;        // operation master id
+  workerId: string | null;    // worker assigned
+  workerName?: string;
   piecesDone: number;
+  earnings: number;
   date: Date;
-  createdBy: string;
-}
-
-export interface ProductionProgress {
-  operationName: string;
-  totalPieces: number;
-  completedPieces: number;
-  percentage: number;
-}
-
-export interface ProductionStatus {
-  productId: string;
-  productName: string;
-  totalPieces: number;
-  completedPieces: number;
-  percentage: number;
-  operationsProgress: ProductionProgress[];
-}
-
-export interface WorkerProductionEntry {
-  productId: string;
-  workerId: string;
-  operationId: string;
-  piecesDone: number;
-}
-
-export interface Production {
-  id: string;
-  name: string;
-  productionId: string;
-  poNumber: string;
-  color: string;
-  totalFabric: number;
-  average: number;
-  totalQuantity: number;
-  operations: ProductionOperationDetail[];
-  createdBy: string;
   createdAt: Date;
 }
 
-export interface ProductionOperationDetail {
+// ----------------------
+// Main Production Record (Matches DB)
+// ----------------------
+export interface Production {
   id: string;
-  name: string;
-  ratePerPiece: number;
-  isCompleted: boolean;
-  productionId: string;
-  assignedWorkerId?: string; // Added field to track assigned worker
-  assignedWorkerName?: string; // Added field to display worker name
+  productId: string;
+  productionId: string;        // production_code
+  poNumber: string;
+  color: string;
+  totalFabric: number;
+  average: number;
+  totalQuantity: number;
+  createdBy: string;
+  createdAt: Date;
+  // UI only (NOT stored in DB)
+  productName: string;
+  operations: ProductionOperation[];   // fetched separately
 }
 
-export interface ProductionFormData {
+// ----------------------
+// Operation Master Table (already exists)
+// ----------------------
+export interface OperationMaster {
+  id: string;
   name: string;
+  operationCode: string;
+  amountPerPiece: number;
+  productId: string;       // allows product-specific operations
+  createdAt: Date;
+}
+
+// ----------------------
+// Production Form (Add Production Dialog)
+// ----------------------
+export interface ProductionFormData {
+  prodcutname: string;
+  productId: string;
   productionId: string;
   poNumber: string;
   color: string;
   totalFabric: number;
   average: number;
   totalQuantity: number;
-  operations: {
-    name: string;
-    ratePerPiece: number;
-  }[];
 }
 
-export interface ProductionReport {
-  daily: ReportData;
-  weekly: ReportData;
-  monthly: ReportData;
-  yearly: ReportData;
-}
-
-export interface ReportData {
-  productionQuantity: number;
-  operationExpense: number;
-  rawMaterialCost: number;
-  totalExpense: number;
-  efficiency: number;
-}
-
-export interface EmployeePerformance {
-  employeeId: string;
-  employeeName: string;
-  totalPiecesCompleted: number;
-  totalOperations: number;
-  efficiency: number;
-  earnings: number;
-}
-
-// New interface for worker assignment
+// ----------------------
+// Worker Assignment (When selecting worker in dialog)
+// ----------------------
 export interface WorkerAssignment {
   workerId: string;
   workerName: string;
   operationId: string;
   operationName: string;
   productionId: string;
-  productionName: string;
   piecesDone: number;
   date: Date;
 }
