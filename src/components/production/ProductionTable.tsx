@@ -48,14 +48,16 @@ export const ProductionTable: React.FC<ProductionTableProps> = ({
         ) : (
           productions.map((production) => (
             <TableRow key={production.id}>
-              <TableCell>{production.name}</TableCell>
+              <TableCell>{production.productName}</TableCell>
               <TableCell>{production.productionId}</TableCell>
               <TableCell>{production.poNumber}</TableCell>
               <TableCell>{production.color}</TableCell>
               <TableCell>{production.totalFabric} mtr.</TableCell>
               <TableCell>{production.average}</TableCell>
               <TableCell>{production.totalQuantity} pcs</TableCell>
-              <TableCell>{production.operations.length}</TableCell>
+              <TableCell> {Array.isArray(production.operations)
+    ? production.operations.length
+    : 0}</TableCell>
               <TableCell className="text-right space-x-2">
                 <Button
                   variant="outline"

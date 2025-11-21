@@ -1,175 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { v4 as uuidv4 } from 'uuid';
-
+// src/components/production/AddProductionDialog.tsx
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Production, ProductionOperationDetail, ProductionFormData } from '@/types/production';
-import { Circle, CirclePlus, CircleMinus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Product } from "@/types/product";
+import { useForm } from "react-hook-form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { createProduction } from "@/Services/productionService";
+import { v4 as uuidv4 } from "uuid";
 
-// Mock PO data for auto-filling average
-const poAverageData = {
-  'PO-12345': 0.5,
-  'PO-67890': 2.4,
-  'PO-24680': 1.8,
-  'PO-13579': 1.2,
-};
-
-// Form validation schema
-const operationSchema = z.object({
-  name: z.string().min(1, "Operation name is required"),
-  ratePerPiece: z.coerce.number().min(0, "Rate must be a positive number"),
-  assignedWorkerId: z.string().optional(),
-});
-
-const formSchema = z.object({
-  name: z.string().min(1, "Production name is required"),
-  productionId: z.string().min(1, "Production ID is required"),
-  poNumber: z.string().min(1, "P.O Number is required"),
-  color: z.string().min(1, "Color is required"),
-  totalFabric: z.coerce.number().min(0, "Total fabric must be a positive number"),
-  average: z.coerce.number().min(0, "Average must be a positive number"),
-  totalQuantity: z.coerce.number().min(1, "Total quantity must be at least 1"),
-  operations: z.array(operationSchema).min(1, "At least one operation is required"),
-});
-
-interface AddProductionDialogProps {
+interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddProduction: (production: Production) => void;
-  availableWorkers?: { id: string; name: string }[];
+  products: Product[];
+  onAddProduction: (row: any) => void;
 }
 
-interface ExtendedProductionFormData extends ProductionFormData {
-  operations: Array<{
-    name: string;
-    ratePerPiece: number;
-    assignedWorkerId?: string;
-  }>;
+interface FormValues {
+  productId: string;
+  productionId: string;
+  poNumber: string;
+  color: string;
+  totalFabric: number;
+  average: number;
+  totalQuantity: number;
 }
 
-export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
-  open,
-  onOpenChange,
-  onAddProduction,
-  availableWorkers = []
-}) => {
+export const AddProductionDialog: React.FC<Props> = ({ open, onOpenChange, products, onAddProduction }) => {
   const { toast } = useToast();
-  const form = useForm<ExtendedProductionFormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
     defaultValues: {
-      name: "",
+      productId: "",
       productionId: "",
       poNumber: "",
       color: "",
       totalFabric: 0,
       average: 0,
       totalQuantity: 0,
-      operations: [{ name: "Cutting", ratePerPiece: 0 }],
     },
   });
 
-  // Watch for changes in PO Number to auto-fill average
-  const poNumber = form.watch("poNumber");
-  
-  useEffect(() => {
-    if (poNumber && poAverageData[poNumber]) {
-      form.setValue("average", poAverageData[poNumber]);
-      toast({
-        title: "Average updated",
-        description: `Average value has been set based on the selected PO number.`,
-      });
-    }
-  }, [poNumber, form, toast]);
-
-  const onSubmit = (values: ExtendedProductionFormData) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      // Create operations array for the new production
-      const operationDetails: ProductionOperationDetail[] = values.operations.map(op => {
-        const selectedWorker = op.assignedWorkerId 
-          ? availableWorkers.find(w => w.id === op.assignedWorkerId) 
-          : null;
-          
-        return {
-          id: uuidv4(),
-          name: op.name,
-          ratePerPiece: op.ratePerPiece,
-          isCompleted: false,
-          productionId: "", // Will be set after production is created
-          assignedWorkerId: op.assignedWorkerId,
-          assignedWorkerName: selectedWorker?.name,
-        };
-      });
-
-      // Create a new production with the form values
-      const newProduction: Production = {
-        id: uuidv4(),
-        ...values,
-        operations: operationDetails,
-        createdBy: 'admin',
-        createdAt: new Date(),
+      const row = {
+        product_id: values.productId,
+        production_code: values.productionId,
+        po_number: values.poNumber,
+        color: values.color,
+        total_fabric: values.totalFabric,
+        average: values.average,
+        total_quantity: values.totalQuantity,
+        created_by: "admin",
+        created_at: new Date().toISOString(),
       };
 
-      // Set the productionId for each operation
-      newProduction.operations.forEach(op => {
-        op.productionId = newProduction.id;
-      });
-
-      onAddProduction(newProduction);
+      const created = await createProduction(row);
+      toast({ title: "Production created" });
+      onAddProduction(created);
       onOpenChange(false);
       form.reset();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add production. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Error adding production:", error);
-    }
-  };
-
-  const addOperation = () => {
-    const currentOperations = form.getValues().operations || [];
-    form.setValue("operations", [
-      ...currentOperations,
-      { name: "", ratePerPiece: 0 }
-    ]);
-  };
-
-  const removeOperation = (index: number) => {
-    const currentOperations = form.getValues().operations;
-    if (currentOperations.length > 1) {
-      form.setValue(
-        "operations",
-        currentOperations.filter((_, i) => i !== index)
-      );
+    } catch (err: any) {
+      console.error("create production error", err);
+      toast({ title: "Error", description: err?.message || String(err), variant: "destructive" });
     }
   };
 
@@ -177,72 +77,42 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Production</DialogTitle>
-          <DialogDescription>
-            Enter the details for the new production.
-          </DialogDescription>
+          <DialogTitle>Add Production</DialogTitle>
+          <DialogDescription>Choose product and fill production details.</DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="productId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Production Name</FormLabel>
+                    <FormLabel>Product</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter production name" {...field} />
+                      <select {...field} className="w-full border rounded px-2 py-2">
+                        <option value="">Select product</option>
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.product_code})
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="productionId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Production ID</FormLabel>
+                    <FormLabel>Production Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter production ID" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="poNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>P.O Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter P.O number" {...field} list="po-numbers" />
-                    </FormControl>
-                    <datalist id="po-numbers">
-                      {Object.keys(poAverageData).map((po) => (
-                        <option key={po} value={po} />
-                      ))}
-                    </datalist>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="color"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Color</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter color" {...field} />
+                      <Input placeholder="PRD-001" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -253,45 +123,38 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="totalFabric"
+                name="poNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Fabric (mtr.)</FormLabel>
+                    <FormLabel>P.O Number</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      <Input placeholder="PO-123" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
               <FormField
                 control={form.control}
-                name="average"
+                name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Average (as per P.O)</FormLabel>
+                    <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="0.00" 
-                        {...field} 
-                      />
+                      <Input placeholder="Blue" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="totalQuantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Quantity (pieces)</FormLabel>
+                    <FormLabel>Total Quantity</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="0" {...field} />
+                      <Input type="number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -299,85 +162,15 @@ export const AddProductionDialog: React.FC<AddProductionDialogProps> = ({
               />
             </div>
 
-            <Separator className="my-4" />
-            
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Operations</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addOperation}
-                >
-                  <CirclePlus className="mr-2 h-4 w-4" />
-                  Add Operation
-                </Button>
-              </div>
-
-              {form.getValues().operations?.map((_, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-4 mb-4 items-start">
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name={`operations.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Operation Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Cutting, Stitching" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name={`operations.${index}.ratePerPiece`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Rate (per piece)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              step="0.01" 
-                              placeholder="0.00"
-                              className="w-28" 
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="pt-8">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeOperation(index)}
-                      disabled={form.getValues().operations.length <= 1}
-                    >
-                      <CircleMinus className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit">Save Production</Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-}
+};
