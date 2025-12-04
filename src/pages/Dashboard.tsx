@@ -220,11 +220,11 @@ const Dashboard: React.FC = () => {
 
           <CardContent className="pt-6">
             <div className="space-y-4">
-              {recentWorkerOperations.length === 0 && (
+              {recentWorkerOperations.slice(0, 6).length === 0 && (
                 <p className="text-sm text-muted-foreground">No worker activity found.</p>
               )}
 
-              {recentWorkerOperations.map((op) => (
+              {recentWorkerOperations.slice(0, 6).map((op) => (
                 <div
                   key={op.id}
                   className="flex items-center p-2 rounded-lg hover:bg-muted/50 transition-colors"

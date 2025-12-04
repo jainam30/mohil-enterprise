@@ -156,21 +156,21 @@ export const getOperationsByProductionId = async (productionId: string) => {
   if (opIds.length > 0) {
     const { data: masterOps, error: masterErr } = await supabase
       .from("operations")
-      .select("id,name,amount_per_piece,rate")
+      .select("id,name,amount_per_piece")
       .in("id", opIds);
-    if (!masterErr && Array.isArray(masterOps)) {
-      masterOps.forEach((m: any) => { if (m?.id) opMap[m.id] = m; });
-    }
-  }
+     if (!masterErr && Array.isArray(masterOps)) {
+       masterOps.forEach((m: any) => { if (m?.id) opMap[m.id] = m; });
+     }
+   }
 
-  // Merge operation master info into each production_operation row under an `operations` property.
-  return (rows || []).map((r: any) => {
-    const master = r.operation_id ? opMap[r.operation_id] : undefined;
-    return {
-      ...r,
-      operations: master ? { name: master.name, amount_per_piece: master.amount_per_piece ?? master.rate } : undefined,
-    };
-  });
+   // Merge operation master info into each production_operation row under an `operations` property.
+   return (rows || []).map((r: any) => {
+     const master = r.operation_id ? opMap[r.operation_id] : undefined;
+     return {
+       ...r,
+       operations: master ? { name: master.name, amount_per_piece: master.amount_per_piece } : undefined,
+     };
+   });
  };
 
 /**
