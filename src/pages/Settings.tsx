@@ -113,7 +113,7 @@ const Settings: React.FC = () => {
       setSupervisors([res.data, ...supervisors]);
       toast({
         title: "Supervisor added",
-        description: `${res.data.name} has been added as a supervisor.`,
+        description: `${res.data.supervisor.name} has been added as a supervisor.`,
       });
     }
   };
