@@ -33,7 +33,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { markWorkerSalariesPaid } from '@/Services/salaryService';
 import { Production } from '@/types/production';
 
-import WorkerOperationDetailDialog, { OperationDetail } from "@/components/salary/WorkerOPerationDetailDialog";
+import WorkerOperationDetailDialog, { OperationDetail } from "@/components/salary/WorkerOperationDetailDialog";
 import { getWorkerOperations } from "@/Services/salaryService";
 // Rely on DB-backed `salaries` and optional `workerName` provided on each salary row
 
@@ -194,34 +194,34 @@ export const WorkerSalaryTable: React.FC<WorkerSalaryTableProps> = ({
 
 
   const [detailOpen, setDetailOpen] = useState(false);
-    const [detailLoading, setDetailLoading] = useState(false);
-    const [detailError, setDetailError] = useState<string | null>(null);
-    const [detailOperations, setDetailOperations] = useState<OperationDetail[]>([]);
-    const [detailWorkerName, setDetailWorkerName] = useState<string | undefined>();
-  
-    const openDetails = async (employeeId: string) => {
-      setDetailError(null);
-      setDetailOperations([]);
-      setDetailLoading(true);
-  
-      try {
-        // pass currently selected month/year to fetch scoped operations
-        const monthNum = Number(month);
-        const yearNum = Number(year);
-        const ops = await getWorkerOperations(employeeId, monthNum, yearNum);
-        setDetailOperations(ops);
-        setDetailWorkerName(employeeId);
-        setDetailOpen(true);
-      } catch (err: any) {
-        console.error("Failed to load operations:", err);
-        setDetailError(err?.message ?? "Failed to load operations");
-        // show dialog even on error so user sees message (optional)
-        setDetailWorkerName(employeeId);
-        setDetailOpen(true);
-      } finally {
-        setDetailLoading(false);
-      }
-    };
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [detailOperations, setDetailOperations] = useState<OperationDetail[]>([]);
+  const [detailWorkerName, setDetailWorkerName] = useState<string | undefined>();
+
+  const openDetails = async (employeeId: string) => {
+    setDetailError(null);
+    setDetailOperations([]);
+    setDetailLoading(true);
+
+    try {
+      // pass currently selected month/year to fetch scoped operations
+      const monthNum = Number(month);
+      const yearNum = Number(year);
+      const ops = await getWorkerOperations(employeeId, monthNum, yearNum);
+      setDetailOperations(ops);
+      setDetailWorkerName(employeeId);
+      setDetailOpen(true);
+    } catch (err: any) {
+      console.error("Failed to load operations:", err);
+      setDetailError(err?.message ?? "Failed to load operations");
+      // show dialog even on error so user sees message (optional)
+      setDetailWorkerName(employeeId);
+      setDetailOpen(true);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
   const handleDeleteSalary = (workerId: string) => {
     setSalaries(prevSalaries => prevSalaries.filter(salary => salary.workerId !== workerId));
   };
